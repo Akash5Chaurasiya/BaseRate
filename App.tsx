@@ -25,10 +25,14 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 import Section from './src/screens/Section';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
+
+const Stack = createNativeStackNavigator();
+
 
 
 
@@ -53,7 +57,7 @@ function App(): JSX.Element {
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
-          <Section title="Step One">
+          <Section title="Akanksha">
             Edit <Text style={styles.highlight}>App.tsx</Text> to change this
             screen and then come back to see your edits.
             <Text>Welcome this is Akash Chaurasiya</Text>
