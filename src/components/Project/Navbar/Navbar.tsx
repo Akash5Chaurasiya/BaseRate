@@ -41,7 +41,7 @@ export default function Navbar({ goBack, ...props }: RINavbar) {
             <View>
                 <Clickable compressAmount={0.9} onPress={() => auth.actions.logout()}>
                     <View style={{ transform: [{ rotate: '360deg' }] }}>
-                        <Image style={{ height: 30,width:115 }} source={ImageIndex.Logout}/>
+                        <Image style={{ height: 20,width:95 }} source={ImageIndex.Logout}/>
                     </View>
                 </Clickable>
             </View>
