@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import SearchBar from '@src/components/Project/SearchBar/SearchBar';
 import ToggleSwitch from 'toggle-switch-react-native';
 import TableViewCard from '../Body/TableviewCard';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export interface RIDashboard { }
 export namespace PIDashboard { }
@@ -28,7 +29,7 @@ const VirtualizedList = ({
     );
 };
 const Dashboard = ({ navigation }: any) => {
-const auth=useAuthContext();
+    const auth = useAuthContext();
     const [toggle, setToggle] = useState(false);
     const handleToggle = () => {
 
@@ -45,43 +46,45 @@ const auth=useAuthContext();
                 </View>
                 <VirtualizedList style={styles.container}>
                     <View style={styles.body}>
-                        <View style={{ marginBottom: 20 }} >
-                            <Text
-                                className="text-xl text-slate-700 "
-                                style={{ fontFamily: 'Inter-Medium' }}>
-                                Welcome Back!
-                            </Text>
-                            <Text className="text-xs"
-                                style={{ fontFamily: 'Inter-Regular', color: '#969393' }}>
-                                Hello {auth.authData.loginData.name}
-                            </Text>
+                        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <View style={{ marginBottom: 20 }} >
+                                <Text
+                                    className="text-xl text-slate-700 "
+                                    style={{ fontFamily: 'Inter-Medium' }}>
+                                    Welcome Back!
+                                </Text>
+                                <Text className="text-xs"
+                                    style={{ fontFamily: 'Inter-Regular', color: '#969393' }}>
+                                    Hello {auth.authData.loginData.name}
+                                </Text>
+                            </View>
+                            <View >
+                                <ToggleSwitch
+                                    isOn={toggle}
+                                    onColor="#414EF1"
+                                    offColor="#B0B0B0"
+                                    size="small"
+                                    onToggle={handleToggle}
+                                    label="Table View"
+                                    labelStyle={{ color: "black", fontWeight: "600" }}
+                                />
+                            </View>
+                        </View>
+                        <View >
+                            <Text style={{ color: 'black', fontWeight: '700', fontSize: 18 }}
+                                className="text-lg text-black">Base Pricing</Text>
                         </View>
                         <View style={{ marginBottom: 32, zIndex: 2000 }}>
                             <SearchBar navigation={navigation} />
                         </View>
                     </View>
+                        {toggle ? (
+                            <TableViewCard />
+                        ) : (
+
+                            <Text>Toggle is off----</Text>
+                        )}
                 </VirtualizedList>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', }}>
-                <Text style={{ color: 'black', fontWeight: '700', fontSize: 25, padding: 16 }}
-                    className="text-lg text-black">Base Pricing</Text>
-
-                <ToggleSwitch
-                    isOn={toggle}
-                    onColor="#414EF1"
-                    offColor="#B0B0B0"
-                    size="small"
-                    onToggle={handleToggle}
-                    label="Table View"
-                    labelStyle={{ color: "black", fontWeight: "600" }}
-                />
-
-            </View>
-            {toggle ? (
-                <TableViewCard />
-            ) : (
-
-                <Text>Toggle is off----</Text>
-            )}
             </View>
         </>
 
@@ -93,7 +96,7 @@ export default Dashboard
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        height: '100%',
+        height:'92%',
         backgroundColor: '#fafafa',
     },
     navbar: {

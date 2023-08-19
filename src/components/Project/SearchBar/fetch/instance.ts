@@ -1,5 +1,5 @@
 import AxiosFactory from "@src/modules/axios/AxiosFactory";
 
 export const SearchBarInstance=AxiosFactory.createInstance({
-    baseURL:''
+    baseURL:'purchaser/pages/setBasicPrice/getBasicPrice'
 })

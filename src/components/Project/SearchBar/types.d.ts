@@ -9,7 +9,7 @@ namespace SearchBar {
     interface SearchAssists {
         _id: string;
         name: string;
-        type: 'category' | 'item' | 'product';
+        type: 'company' | 'item' | 'product';
     }
 
     interface State {

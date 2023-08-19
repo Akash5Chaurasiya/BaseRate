@@ -1,3 +1,3 @@
 export const api ={
-    searchBarData:(query:string)=>`searchAssists/${query}`
+    searchBarData:(query:string)=>`${query}`
 }
