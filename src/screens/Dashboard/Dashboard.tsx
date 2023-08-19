@@ -2,8 +2,10 @@ import { FlatList, StyleSheet, Text, View } from 'react-native'
 import Clickable from '@src/components/Interaction/Clickable/Clickable';
 import { useAuthContext } from '@src/auth/AuthGuard';
 import Navbar from '@src/components/Project/Navbar/Navbar';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import SearchBar from '@src/components/Project/SearchBar/SearchBar';
+import ToggleSwitch from 'toggle-switch-react-native';
+import TableViewCard from '../Body/TableviewCard';
 
 export interface RIDashboard { }
 export namespace PIDashboard { }
@@ -26,7 +28,12 @@ const VirtualizedList = ({
     );
 };
 const Dashboard = ({ navigation }: any) => {
-    const auth = useAuthContext()
+const auth=useAuthContext();
+    const [toggle, setToggle] = useState(false);
+    const handleToggle = () => {
+
+        setToggle(!toggle);
+    };
     return (
         <>
             <View style={{ zIndex: 2000000 }}>
@@ -54,8 +61,30 @@ const Dashboard = ({ navigation }: any) => {
                         </View>
                     </View>
                 </VirtualizedList>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', }}>
+                <Text style={{ color: 'black', fontWeight: '700', fontSize: 25, padding: 16 }}
+                    className="text-lg text-black">Base Pricing</Text>
+
+                <ToggleSwitch
+                    isOn={toggle}
+                    onColor="#414EF1"
+                    offColor="#B0B0B0"
+                    size="small"
+                    onToggle={handleToggle}
+                    label="Table View"
+                    labelStyle={{ color: "black", fontWeight: "600" }}
+                />
+
+            </View>
+            {toggle ? (
+                <TableViewCard />
+            ) : (
+
+                <Text>Toggle is off----</Text>
+            )}
             </View>
         </>
+
     )
 }
 
