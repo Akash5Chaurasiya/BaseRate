@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import AuthGuard from '@src/auth/AuthGuard';
 import Dashboard from '@src/screens/Dashboard/Dashboard';
+import SearchBar from '@src/components/Project/SearchBar/SearchBar';
 const Stack = createNativeStackNavigator();
 
 

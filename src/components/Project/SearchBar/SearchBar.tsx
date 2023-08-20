@@ -1,11 +1,12 @@
 import AsyncStateFactory from "@src/modules/StateManagement/AsyncState/AsyncStateFactory";
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import FetchSearchBarAction from "./management/actions/FetchSearchBarAction";
 import {
     SafeAreaView,
     ScrollView,
     ScrollViewComponent,
     StyleSheet,
+    Text,
     TextInput,
     View,
 } from 'react-native';
@@ -15,89 +16,129 @@ import Tab from "./components/Tab/Tab";
 import { FlatList } from "react-native-gesture-handler";
 import SearchListItem from "./components/SearchListItem/SearchListItem";
 import { ScreenIndex } from "@src/globals/screenNames/ScreenName.constant";
+import { useRoute } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import SkeletonPlaceholder from "react-native-skeleton-placeholder";
+import TableView, { Card } from "@src/screens/Body/TableviewCard";
+
+
 export interface RISearchBar {
     navigator: any;
 }
 export namespace PISearchBar { }
 
-export default function SearchBar({navigation}: any) {
-    const initialState: SearchBar.State = {
+export default function SearchBar({onSearch}:any,{ navigation }: any) {
+    const initialState: any = {
         searchedData: {
-            category: [],
-            item: [],
-            product: []
+            item: []
         },
-        loading: { fetchData: AsyncStateFactory() },
+        loading: { fetchSearchData: AsyncStateFactory() },
     };
+    const [showTabBar, setShowTabBar] = useState(true);
     const [state, setState] = React.useState(initialState);
+    const [data, setData] = useState('')
     const [text, setText] = React.useState('');
     const [selected, setSelected] = React.useState(false);
     const [type, setType] = React.useState<'company'>('company');
     const fetchSearchDataAction = new FetchSearchBarAction(state, setState);
-    return ( 
-    <>
-        <View style={[
-            styles.container,
-            {
-                backgroundColor: selected ? '#fff' : '',
-                elevation: selected ? 1 : 0,
-            },
-        ]}>
-            <AssetIndex.SearchMagnifier />
-            <TextInput
-                onFocus={() => {
-                    setSelected(true);
-                }}
-                onBlur={() => setSelected(false)}
-                onChangeText={text => {
-                    setText(text);
-                    fetchSearchDataAction.fetSearchData(text)
-                }}
-                className="text-base text-slate-700"
-                placeholder="Search"
-                placeholderTextColor={'#64748B'}
-                style={styles.input}
-            />
-            {text && (
-                <Clickable style={{ paddingHorizontal: 8 }}
-                    onPress={() => {
-                        setText('');
-                    }}>
-                    <AssetIndex.SearchBarCrossIcon />
-                </Clickable>
-            )}
-            {text && (
-                <View style={styles.searchAssistContainer}>
-                    <View
-                        className="flex flex-row bg-slate-50"
-                        style={{ borderRadius: 8 }}>
-                        <Tab
-                            isActive={type === 'company'}
-                            text="company"
-                            onPress={() => {
-                                setType('company');
-                            }}
-                            tabItemCounts={state.searchedData.item.length}
-                        />
-                    </View>
-                    <SafeAreaView style={{ flex: 1 }}>
-                        {type === 'company' && (
-                            <FlatList
-                                nestedScrollEnabled={true}
-                                style={{ maxHeight: 300 }}
-                                renderItem={v => (
-                                    <SearchListItem
-                                        assistText={v.item.name}
-                                    />
-                                )}
-                                data={state.searchedData.item}
+    console.log("Hey State", state.searchedData);
+    const value = state.searchedData
+    const filteredData = Array.isArray(value) ? [...value] : [];
+    const Parsed = filteredData.filter(x =>
+        x.companyName.name.toLowerCase().includes(text.toLowerCase())
+    );
+    console.log("Initialy Callin", text);
+    useEffect(() => {
+        if (text.length>=1) {
+            setShowTabBar(true);
+        } else {
+            setShowTabBar(false);
+        }
+        fetchSearchDataAction.fetchSearchData(text)
+    }, [text]);
+        return (
+        <>
+            <View style={[
+                styles.container,
+                {
+                    backgroundColor: selected ? '#fff' : '',
+                    elevation: selected ? 1 : 0,
+                },
+            ]}>
+                <AssetIndex.SearchMagnifier />
+                <TextInput
+                    onFocus={() => {
+                        setSelected(true);
+                    }}
+                    value={text}
+                    onBlur={() => setSelected(false)}
+                    onChangeText={text => {
+                        setText(text);
+                        fetchSearchDataAction.fetchSearchData(text)
+                        onSearch(text);
+                    }}
+                    className="text-base text-slate-700"
+                    placeholder="Search"
+                    placeholderTextColor={'#64748B'}
+                    style={styles.input}
+                />
+                {text && (
+                    <Clickable style={{ paddingHorizontal: 8 }}
+                        onPress={() => {
+                            setText('');
+                            onSearch('');
+                        }}>
+                        <AssetIndex.SearchBarCrossIcon />
+                    </Clickable>
+                )}
+                {text&& (
+                    <View style={styles.searchAssistContainer}>
+                        <View
+                            className="flex flex-row bg-slate-50"
+                            style={{ borderRadius: 8 }}>
+                            <Tab
+                                isActive={type === 'company'}
+                                text="company"
+                                onPress={() => {
+                                    setType('company');
+                                }}
+                                tabItemCounts={Parsed.length}
                             />
-                        )}
-                    </SafeAreaView>
-                </View>
-            )}
-        </View>
-    </>
+                        </View>
+                        <SafeAreaView style={{ flex: 1 }}>
+                            {type === 'company'&&showTabBar && (
+                                <FlatList
+                                    nestedScrollEnabled={true}
+                                    style={{ maxHeight: 300 }}
+                                    renderItem={v => (
+                                        <Clickable onPress={() => {
+                                            setText(v.item.companyName.name);
+                                            onSearch(text);
+                                            setShowTabBar(false)
+                                        }}>
+                                            <View style={{
+                                                paddingVertical: 8,
+                                                borderBottomColor: '#F8FAFC',
+                                                borderBottomWidth: 1,
+                                            }}>
+                                                <Text style={{
+                                                    fontFamily: 'Inter-SemiBold',
+                                                    color: 'black',
+                                                }}>
+                                                    {v.item.companyName.name}
+                                                </Text>
+                                            </View>
+                                        </Clickable>
+                                    )}
+                                    data={Parsed}
+                                />
+                            )}
+                        </SafeAreaView>
+                    </View>
+                )}
+            </View>
+        </>
     )
 }
 

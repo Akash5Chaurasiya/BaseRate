@@ -2,17 +2,16 @@ import { api } from "../api";
 import { SearchBarInstance } from "../instance";
 
 interface SearchBarData {
-    category: SearchAssists[],
-    item: SearchAssists[],
-    product: SearchAssists[]
+    item: SearchAssists[]
 }
 
 interface SearchAssists {
-    _id: string;
+    companyId: string;
     name: string;
-    type: 'category' | 'item' | 'product';
+    type: 'company';
 }
 
 export default async function fetchSearchData(query: string) {
+    console.log(query);
     return await SearchBarInstance.get<SearchBarData>(api.searchBarData(query));
 }

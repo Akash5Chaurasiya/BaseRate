@@ -7,6 +7,7 @@ import SearchBar from '@src/components/Project/SearchBar/SearchBar';
 import ToggleSwitch from 'toggle-switch-react-native';
 import TableViewCard from '../Body/TableviewCard';
 import { ScrollView } from 'react-native-gesture-handler';
+import TableviewTable from '../Body/TableviewTable';
 
 export interface RIDashboard { }
 export namespace PIDashboard { }
@@ -31,6 +32,7 @@ const VirtualizedList = ({
 const Dashboard = ({ navigation }: any) => {
     const auth = useAuthContext();
     const [toggle, setToggle] = useState(false);
+    const [searchText, setSearchText] = useState('');
     const handleToggle = () => {
 
         setToggle(!toggle);
@@ -44,8 +46,8 @@ const Dashboard = ({ navigation }: any) => {
                             navigation.goBack();
                         }} />
                 </View>
-                <VirtualizedList style={styles.container}>
-                    <View style={styles.body}>
+                <View style={styles.body}>
+                    <VirtualizedList style={styles.container}>
                         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                             <View style={{ marginBottom: 20 }} >
                                 <Text
@@ -70,22 +72,23 @@ const Dashboard = ({ navigation }: any) => {
                                 />
                             </View>
                         </View>
-                        <View >
-                            <Text style={{ color: 'black', fontWeight: '700', fontSize: 18 }}
-                                className="text-lg text-black">Base Pricing</Text>
-                        </View>
-                        <View style={{ marginBottom: 32, zIndex: 2000 }}>
-                            <SearchBar navigation={navigation} />
-                        </View>
+                    </VirtualizedList>
+                    <View >
+                        <Text style={{ color: 'black', fontWeight: '700', fontSize: 18 }}
+                            className="text-lg text-black">Base Pricing</Text>
                     </View>
-                        {toggle ? (
-                            <TableViewCard />
-                        ) : (
 
-                            <Text>Toggle is off----</Text>
-                        )}
-                </VirtualizedList>
-            </View>
+                    <View style={{ marginBottom: 1, zIndex: 2000 }}>
+                        <SearchBar onSearch={(searchText: any) => setSearchText(searchText)} />
+                    </View>
+                </View>
+                {toggle ? (
+                    <TableViewCard searchText={searchText} />
+                ) : (
+
+                    <TableviewTable searchText={searchText} />
+                )}
+            </View >
         </>
 
     )
@@ -96,8 +99,8 @@ export default Dashboard
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        height:'92%',
-        backgroundColor: '#fafafa',
+        // height: '92%',
+        // backgroundColor: '#fafafa',
     },
     navbar: {
         borderBottomWidth: 1,

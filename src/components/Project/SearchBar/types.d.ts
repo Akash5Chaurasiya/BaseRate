@@ -1,19 +1,17 @@
 namespace SearchBar {
 
     interface SearchBarData {
-        category: SearchAssists[];
-        item: SearchAssists[];
-        product: SearchAssists[];
+        data: SearchAssists[];
     }
 
     interface SearchAssists {
         _id: string;
         name: string;
-        type: 'company' | 'item' | 'product';
+        type: 'company';
     }
 
     interface State {
-        searchedData: SearchBarData,
+        searchedData: any,
         loading: { [key: string]: AsyncState }
     }
 }
