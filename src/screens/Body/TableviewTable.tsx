@@ -500,7 +500,7 @@ const TableviewTable: any = ({ searchText }: any) => {
 
                             {/* body */}
                             <FlatList
-                                data={tableData}
+                                data={filteredData}
                                 renderItem={({ item, index }: { item: any, index: number }) => (
                                     <View className="flex-row items-center">
                                         <View style={styles.tableData}>
