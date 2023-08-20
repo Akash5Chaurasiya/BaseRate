@@ -4,6 +4,7 @@ import Clickable from '@src/components/Interaction/Clickable/Clickable';
 import { useAuthContext } from '@src/auth/AuthGuard';
 import ToggleSwitch from 'toggle-switch-react-native';
 import TableViewCard from '../Body/TableviewCard';
+import TableviewTable from '../Body/TableviewTable';
 
 const Dashboard = () => {
     const auth = useAuthContext()
@@ -53,7 +54,7 @@ const Dashboard = () => {
                 <TableViewCard />
             ) : (
 
-                <Text>Toggle is off----</Text>
+                <TableviewTable />
             )}
         </View>
     )
