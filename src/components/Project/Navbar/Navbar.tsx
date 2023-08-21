@@ -6,6 +6,7 @@ import {
     Dimensions, StyleSheet, Text,
     View,Image
 } from "react-native";
+import FlashMessage from 'react-native-flash-message';
 
 export interface RINavbar {
     goBack: () => void;
@@ -46,6 +47,7 @@ export default function Navbar({ goBack, ...props }: RINavbar) {
                 </Clickable>
             </View>
             </View>
+            <FlashMessage position="top" />
         </View>
     )
 }

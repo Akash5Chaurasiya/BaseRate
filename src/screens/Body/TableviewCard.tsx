@@ -8,6 +8,7 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clickable from '@src/components/Interaction/Clickable/Clickable';
 import { useAuthContext } from '@src/auth/AuthGuard';
+import { showMessage } from 'react-native-flash-message';
 
 interface CardProps {
     item: any;
@@ -73,11 +74,26 @@ export const Card: React.FC<CardProps> = React.memo(({ item, apiCallFinished, cl
                 "userId": auth.authData.loginData.userId
             }
         }
-        const update = await axios.post(`https://www.lohawalla.com/purchaser/pages/setBasicPrice/saveBasicPrice`, formedData)
-        Alert.alert(update.data);
+        try {
+            const update = await axios.post(`https://www.lohawalla.com/purchaser/pages/setBasicPrice/saveBasicPrice`, formedData)
+        showMessage({
+            message:"Data saved successfully",
+            type: "success",
+            duration: 5000,
+            style: { borderRadius: 50 }
+        })
         if (updateEditedItems) {
             updateEditedItems(updatedItem);
         }
+        } catch (error) {
+            showMessage({
+                message:"Failed to update",
+                type: "danger",
+                duration: 5000,
+                style: { borderRadius: 50 }
+            })
+        }
+        
     }
     return (
         <View style={styles.card}>

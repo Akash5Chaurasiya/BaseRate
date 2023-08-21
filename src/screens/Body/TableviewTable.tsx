@@ -373,6 +373,8 @@ import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import Clickable from '@src/components/Interaction/Clickable/Clickable';
+import { useAuthContext } from '@src/auth/AuthGuard';
+import { showMessage, hideMessage } from "react-native-flash-message";
 
 interface CompanyData { }
 
@@ -383,39 +385,21 @@ interface TableviewTableProps {
 const TableviewTable: any = ({ searchText }: any) => {
     console.log(searchText);
     const [tableData, setTableData] = useState<any>([]);
-    const [filteredData, setFilteredData] = useState([]);
+    const [filteredData, setFilteredData] = useState<any>([]);
     const [text, setText] = useState('')
     const [editedItems, setEditedItems] = useState<any>([]);
+    const [editedItem, setEditedItem] = useState<Array<any>>([]);
 
     // const [data, setData] = useState<CompanyData[]>([]);
     const [rate, setRate] = useState([]);//editing 
 
-    const [editedCosts, setEditedCosts] = useState<any>({});
-    const [isediting, setisEditing] = useState(false);
-    console.log("texted-----", editedCosts);
-    const startEditing = (index: number, item: any) => {
-        // setEditedCosts(item.cost.toString());
-        console.log("sqqqqqqqqqqqq", item);
-        const editedCostsCopy = { ...editedCosts };
-        console.log("editeedcopy", editedCostsCopy);
-        editedCostsCopy[index] = item.cost.toString();
-        setEditedCosts(editedCostsCopy);
+    // } 
+    const [editedCosts, setEditedCosts] = useState<any>(0);
+    const [final, setFinal] = useState<any>([])
+    const [isSaving, setIsSaving] = useState(false);
 
-    }
-    const handleEditCost = (index: number, item: any, editedValue: string) => {
-        const updatedItem = {
-            ...item,
-            cost: parseFloat(editedValue)
-        };
-        updateEditedItems(updatedItem)
-        console.log("hurray", updatedItem);
-
-    };
-    const updateEditedItems = (updatedItem: any) => {
-        setEditedItems((prevEditedItems: any) => [...prevEditedItems, updatedItem]);
-    };
-
-
+    console.log("texted", editedCosts);
+    const auth = useAuthContext();
     const fetchData = async () => {
         try {
             const API_URL = 'https://www.lohawalla.com/purchaser/pages/setBasicPrice/getBasicPrice';
@@ -442,9 +426,94 @@ const TableviewTable: any = ({ searchText }: any) => {
             setFilteredData(tableData); // If searchText is empty, show all data
         }
     }, [searchText, tableData]);
+    const startEditing = (index: number, item: any) => {
+        const editedCostsCopy = { ...editedCosts };
+        console.log(editedCostsCopy);
+        editedCostsCopy[index] = item.cost.toString();
+        setEditedCosts(editedCostsCopy);
+    };
 
+    const handleEditCost = (index: number, item: any, editedValue: string) => {
+        const updatedItem = {
+            ...item,
+            cost: parseFloat(editedValue)
+        };
+        updateEditedItems(updatedItem);
+    };
+    const updateEditedItems = (updatedItem: any) => {
+        setEditedItem((prevEditedItems: any) => [...prevEditedItems, updatedItem]);
+    };
+    console.log("852741963", editedItem);
+    const savePricing = async () => {
+        let count = 0;
+        if (count < 0) {
+            showMessage({
+                message: 'Press again to confirm savePricing',
+                type: "success",
+                duration: 5000,
+                style: { borderRadius: 50 }
+            });
+            count++;
+        }
 
+        const formDataArray = editedItem.map((el) => {
+            console.log("Mapping my ass", el);
+            const formedData = {
+                "list": [{
+                    "priceFieldId": el.priceFieldId,
+                    "value": el.cost
+                }],
+                "by": {
+                    "name": auth.authData.loginData.name,
+                    "userId": auth.authData.loginData.userId
+                }
+            }
+            return formedData;
+            console.log(formedData);
+        })
+        setFinal(formDataArray)
+        // const formedData = {
+        //     "list": [{
+        //         "priceFieldId": updatedItem.priceFieldId,
+        //         "value": updatedItem.cost
+        //     }],
+        //     "by": {
+        //         "name": auth.authData.loginData.name,
+        //         "userId": auth.authData.loginData.userId
+        //     }
+        // }
 
+        await postCombinedData();
+        // Here you can send the edited data to your backend or perform any desired action
+    };
+    console.log("HAAAAAAAAAAAAAAAAAAAA", final);
+
+    async function postData(dat: any) {
+        try {
+            const response = await axios.post(`https://www.lohawalla.com/purchaser/pages/setBasicPrice/saveBasicPrice`, dat);
+            console.log('API Response:', response.data);
+            showMessage({
+                message: 'Data updated successfully',
+                type: "success",
+                duration: 5000,
+                style: { borderRadius: 50 }
+            });
+            fetchData();
+        } catch (error) {
+            showMessage({
+                message: "Failed to update",
+                type: "danger",
+                duration: 5000,
+                style: { borderRadius: 50 }
+            })
+            console.error('API Error:', error);
+        }
+    }
+    async function postCombinedData() {
+        for (const dataItem of final) {
+            await postData(dataItem);
+        }
+    }
     return (
         <View>
             <SafeAreaView>
@@ -499,7 +568,7 @@ const TableviewTable: any = ({ searchText }: any) => {
 
                             {/* body */}
                             <FlatList
-                                data={tableData}
+                                data={filteredData}
                                 renderItem={({ item, index }: { item: any, index: number }) => (
                                     <View className="flex-row items-center">
                                         <View style={styles.tableData}>
@@ -527,74 +596,42 @@ const TableviewTable: any = ({ searchText }: any) => {
                                         </View>
                                         <View style={styles.tableData}>
                                             {editedCosts[index] !== undefined ? (
-                                                <TouchableWithoutFeedback onPress={savePricing}>
+                                                <TouchableWithoutFeedback>
                                                     <TextInput
                                                         style={{
                                                             color: 'black',
                                                             fontFamily: 'Inter-Medium',
                                                             borderWidth: 2,
                                                             borderRadius: 8,
-                                                            borderColor: '#0000001F',
+                                                            borderColor: editedCosts[index] !== undefined ? '#FFFFFF' : '#101010', // Use different colors for edited and non-edited states
                                                             textAlignVertical: 'center',
                                                             textAlign: 'center',
-                                                            paddingVertical: 8
+                                                            paddingVertical: 8,
                                                         }}
                                                         value={editedCosts[index]}
                                                         onChangeText={(text) => {
                                                             const editedCostsCopy = { ...editedCosts };
                                                             editedCostsCopy[index] = +text;
-                                                            setEditedCosts(editedCostsCopy)
+                                                            setEditedCosts(editedCostsCopy);
                                                         }}
                                                         onBlur={() => handleEditCost(index, item, editedCosts[index])}
                                                     />
                                                 </TouchableWithoutFeedback>
                                             ) : (
-                                                <TouchableWithoutFeedback
-                                                    // onPress={() => {
-                                                    //     handleEditCost(index, item);
-                                                    //     // setText(text)
-                                                    // }}
-                                                    onPress={() => startEditing(index, item)}
-                                                >
-                                                    <Text
-                                                        style={{
-                                                            color: 'black',
-                                                            fontFamily: 'Inter-Medium',
-                                                            borderWidth: 2,
-                                                            borderRadius: 8,
-                                                            borderColor: '#0000001F',
-                                                            textAlignVertical: 'center',
-                                                            textAlign: 'center',
-                                                            paddingVertical: 8
-                                                        }}>
-                                                        {item.cost}
-                                                    </Text>
-                                                </TouchableWithoutFeedback>
+                                                <TouchableOpacity onPress={() => startEditing(index, item)}>
+                                                    <Text style={{
+                                                        color: 'black',
+                                                        fontFamily: 'Inter-Medium',
+                                                        borderWidth: 2,
+                                                        borderRadius: 8,
+                                                        borderColor: '#0000001F',
+                                                        textAlignVertical: 'center',
+                                                        textAlign: 'center',
+                                                        paddingVertical: 8,
+                                                    }}>{item.cost}</Text>
+                                                </TouchableOpacity>
                                             )}
                                         </View>
-
-                                        {/* <View style={styles.tableData}>
-
-
-                                        <View style={{ flexShrink: 1 }}>
-                                            <Text
-                                                style={{
-                                                    color: 'black',
-                                                    fontFamily: 'Inter-Medium',
-                                                    borderWidth: 2,
-                                                    borderRadius: 8,
-                                                    borderColor: '#0000001F',
-                                                    textAlignVertical: 'center',
-                                                    textAlign: 'center',
-                                                    paddingVertical: 8
-
-
-                                                }}>
-                                                {item.cost}
-                                            </Text>
-                                        </View>
-
-                                    </View> */}
                                         <View style={styles.tableData}>
                                             <View style={{ flexShrink: 1, flexBasis: '100%' }}>
                                                 <Text
@@ -606,19 +643,14 @@ const TableviewTable: any = ({ searchText }: any) => {
                                                 </Text>
                                             </View>
                                         </View>
-
-
-
                                     </View>
                                 )}
                             />
-
-
                         </View>
                     </ScrollView>
                 </View>
                 <Clickable
-                >
+                    onPress={savePricing}>
                     <View
                         style={{
                             width: '50%',

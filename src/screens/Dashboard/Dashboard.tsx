@@ -8,6 +8,7 @@ import ToggleSwitch from 'toggle-switch-react-native';
 import TableViewCard from '../Body/TableviewCard';
 import { ScrollView } from 'react-native-gesture-handler';
 import TableviewTable from '../Body/TableviewTable';
+import FlashMessage from 'react-native-flash-message';
 
 export interface RIDashboard { }
 export namespace PIDashboard { }
@@ -88,6 +89,7 @@ const Dashboard = ({ navigation }: any) => {
 
                     <TableviewTable searchText={searchText} />
                 )}
+
             </View >
         </>
 
