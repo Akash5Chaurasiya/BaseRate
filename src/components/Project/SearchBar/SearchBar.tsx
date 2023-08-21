@@ -92,7 +92,7 @@ export default function SearchBar({onSearch}:any,{ navigation }: any) {
                         <AssetIndex.SearchBarCrossIcon />
                     </Clickable>
                 )}
-                {text&& (
+                {text&&showTabBar && (
                     <View style={styles.searchAssistContainer}>
                         <View
                             className="flex flex-row bg-slate-50"
