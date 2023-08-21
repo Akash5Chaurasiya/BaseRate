@@ -448,6 +448,16 @@ const TableviewTable: any = ({ searchText }: any) => {
     };
     console.log("852741963", editedItem);
     const savePricing = async () => {
+        let count=0;
+        if(count<0){
+            showMessage({
+                message: 'Press again to confirm savePricing',
+                type: "success",
+                duration: 5000,
+                style: { borderRadius: 50 }
+            });
+            count++;
+        }
 
         const formDataArray = editedItem.map((el) => {
             console.log("Mapping my ass", el);
@@ -491,8 +501,14 @@ const TableviewTable: any = ({ searchText }: any) => {
                 duration: 5000,
                 style: { borderRadius: 50 }
             });
-
+            fetchData();
         } catch (error) {
+            showMessage({
+                message:"Failed to update",
+                type: "danger",
+                duration: 5000,
+                style: { borderRadius: 50 }
+            })
             console.error('API Error:', error);
         }
     }
@@ -583,7 +599,7 @@ const TableviewTable: any = ({ searchText }: any) => {
                                         </View>
                                         <View style={styles.tableData}>
                                             {editedCosts[index] !== undefined ? (
-                                                <TouchableWithoutFeedback onPress={savePricing}>
+                                                <TouchableWithoutFeedback>
                                                     <TextInput
                                                         style={{
                                                             color: 'black',
