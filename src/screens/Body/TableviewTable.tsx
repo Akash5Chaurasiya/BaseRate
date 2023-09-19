@@ -368,6 +368,8 @@ import {
     FlatList,
     RefreshControl,
     TouchableWithoutFeedback,
+    Alert,
+    ActivityIndicator
 } from 'react-native';
 import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -375,6 +377,8 @@ import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import Clickable from '@src/components/Interaction/Clickable/Clickable';
 import { useAuthContext } from '@src/auth/AuthGuard';
 import { showMessage, hideMessage } from "react-native-flash-message";
+import { WINDOWS } from 'nativewind/dist/utils/selector';
+import LoadingScreen from '@src/components/loading/LoadingScreen/LoadingScreen';
 
 interface CompanyData { }
 
@@ -384,22 +388,21 @@ interface TableviewTableProps {
 
 const TableviewTable: any = ({ searchText }: any) => {
     console.log(searchText);
+    const [reloadKey, setReloadKey] = useState(0); // Add a reload key state
+
     const [tableData, setTableData] = useState<any>([]);
     const [filteredData, setFilteredData] = useState<any>([]);
     const [text, setText] = useState('')
     const [editedItems, setEditedItems] = useState<any>([]);
     const [editedItem, setEditedItem] = useState<Array<any>>([]);
+    const [clickCount, setClickCount] = useState(0);
+    const [post, setPost] = useState(false)
 
-    // const [data, setData] = useState<CompanyData[]>([]);
-    const [rate, setRate] = useState([]);//editing 
-    // const [editedValues, setEditedValues] = useState(false);//to set edited value 
-    // const isEditable = (cost:number)=>{
-    //     editedValues[cost]!==undefined && editedValues[cost]
-
-    // } 
+    const [rate, setRate] = useState([]);//editing  
     const [editedCosts, setEditedCosts] = useState<any>(0);
     const [final, setFinal] = useState<any>([])
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     console.log("texted", editedCosts);
     const auth = useAuthContext();
@@ -416,7 +419,7 @@ const TableviewTable: any = ({ searchText }: any) => {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [post, reloadKey]);
 
     useEffect(() => {
         // Filter data based on clickedAssistText
@@ -448,17 +451,11 @@ const TableviewTable: any = ({ searchText }: any) => {
     };
     console.log("852741963", editedItem);
     const savePricing = async () => {
-        let count=0;
-        if(count<0){
-            showMessage({
-                message: 'Press again to confirm savePricing',
-                type: "success",
-                duration: 5000,
-                style: { borderRadius: 50 }
-            });
-            count++;
+        console.log("counted i am clicked", clickCount);
+        if (clickCount == 0) {
+            Alert.alert("Press Again to continue....")
+            setClickCount(1)
         }
-
         const formDataArray = editedItem.map((el) => {
             console.log("Mapping my ass", el);
             const formedData = {
@@ -475,17 +472,6 @@ const TableviewTable: any = ({ searchText }: any) => {
             console.log(formedData);
         })
         setFinal(formDataArray)
-        // const formedData = {
-        //     "list": [{
-        //         "priceFieldId": updatedItem.priceFieldId,
-        //         "value": updatedItem.cost
-        //     }],
-        //     "by": {
-        //         "name": auth.authData.loginData.name,
-        //         "userId": auth.authData.loginData.userId
-        //     }
-        // }
-
         await postCombinedData();
         // Here you can send the edited data to your backend or perform any desired action
     };
@@ -501,10 +487,9 @@ const TableviewTable: any = ({ searchText }: any) => {
                 duration: 5000,
                 style: { borderRadius: 50 }
             });
-            fetchData();
         } catch (error) {
             showMessage({
-                message:"Failed to update",
+                message: "Failed to update",
                 type: "danger",
                 duration: 5000,
                 style: { borderRadius: 50 }
@@ -513,9 +498,21 @@ const TableviewTable: any = ({ searchText }: any) => {
         }
     }
     async function postCombinedData() {
-        for (const dataItem of final) {
-            await postData(dataItem);
+        try {
+            setIsLoading(true);
+            for (const dataItem of final) {
+                await postData(dataItem);
+            }
+            setReloadKey(prevKey => prevKey + 1); // Increment the reload key to trigger a reload
+            // All postData requests completed successfully
+            // Now fetch the updated data
+            fetchData().then(() =>setIsLoading(false))
+        } catch (error) {
+            console.error('Error during postCombinedData:', error);
         }
+    }
+    if(isLoading){
+        return <ActivityIndicator size="large" color="#0000ff"/>
     }
     return (
         <View>
@@ -652,7 +649,7 @@ const TableviewTable: any = ({ searchText }: any) => {
                         </View>
                     </ScrollView>
                 </View>
-                <Clickable
+                <TouchableOpacity
                     onPress={savePricing}>
                     <View
                         style={{
@@ -669,7 +666,7 @@ const TableviewTable: any = ({ searchText }: any) => {
                             Save Pricing
                         </Text>
                     </View>
-                </Clickable>
+                </TouchableOpacity>
             </SafeAreaView>
         </View>
     );

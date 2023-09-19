@@ -8,6 +8,7 @@ import {
     StyleSheet,
     Text,
     TextInput,
+    TouchableOpacity,
     View,
 } from 'react-native';
 import AssetIndex from "@src/assets/AssetIndex";
@@ -28,7 +29,7 @@ export interface RISearchBar {
 }
 export namespace PISearchBar { }
 
-export default function SearchBar({onSearch}:any,{ navigation }: any) {
+export default function SearchBar({ onSearch }: any, { navigation }: any) {
     const initialState: any = {
         searchedData: {
             item: []
@@ -50,14 +51,29 @@ export default function SearchBar({onSearch}:any,{ navigation }: any) {
     );
     console.log("Initialy Callin", text);
     useEffect(() => {
-        if (text.length>=1) {
+        if (text.length >= 1) {
             setShowTabBar(true);
         } else {
             setShowTabBar(false);
         }
+        onSearch(text);
         fetchSearchDataAction.fetchSearchData(text)
     }, [text]);
-        return (
+    const handleSubmit: any = () => {
+        onSearch(text);
+        setShowTabBar(false);
+        // setShowTabBar(false)
+        // setText('')
+        //     if (text.length >= 1) {
+        //         setShowTabBar(true);
+        //     } else {
+        //         setShowTabBar(false);
+        //     }
+        //     fetchSearchDataAction.fetchSearchData(text)
+        // setShowTabBar(true)
+
+    }
+    return (
         <>
             <View style={[
                 styles.container,
@@ -76,12 +92,13 @@ export default function SearchBar({onSearch}:any,{ navigation }: any) {
                     onChangeText={text => {
                         setText(text);
                         fetchSearchDataAction.fetchSearchData(text)
-                        onSearch(text);
+                        
                     }}
                     className="text-base text-slate-700"
                     placeholder="Search"
                     placeholderTextColor={'#64748B'}
                     style={styles.input}
+                    onSubmitEditing={handleSubmit}
                 />
                 {text && (
                     <Clickable style={{ paddingHorizontal: 8 }}
@@ -92,7 +109,7 @@ export default function SearchBar({onSearch}:any,{ navigation }: any) {
                         <AssetIndex.SearchBarCrossIcon />
                     </Clickable>
                 )}
-                {text&&showTabBar && (
+                {text && showTabBar && (
                     <View style={styles.searchAssistContainer}>
                         <View
                             className="flex flex-row bg-slate-50"
@@ -107,14 +124,14 @@ export default function SearchBar({onSearch}:any,{ navigation }: any) {
                             />
                         </View>
                         <SafeAreaView style={{ flex: 1 }}>
-                            {type === 'company'&&showTabBar && (
+                            {type === 'company' && showTabBar && (
                                 <FlatList
                                     nestedScrollEnabled={true}
                                     style={{ maxHeight: 300 }}
                                     renderItem={v => (
-                                        <Clickable onPress={() => {
+                                        <TouchableOpacity onPress={() => {
                                             setText(v.item.companyName.name);
-                                            onSearch(text);
+                                            onSearch(v.item.companyName.name);
                                             setShowTabBar(false)
                                         }}>
                                             <View style={{
@@ -129,7 +146,7 @@ export default function SearchBar({onSearch}:any,{ navigation }: any) {
                                                     {v.item.companyName.name}
                                                 </Text>
                                             </View>
-                                        </Clickable>
+                                        </TouchableOpacity>
                                     )}
                                     data={Parsed}
                                 />

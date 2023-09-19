@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, Alert, RefreshControl, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import { ScrollView, TextInput, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { ImageIndex } from '@src/assets/AssetIndex';
@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clickable from '@src/components/Interaction/Clickable/Clickable';
 import { useAuthContext } from '@src/auth/AuthGuard';
 import { showMessage } from 'react-native-flash-message';
+import { Dialog,ALERT_TYPE } from 'react-native-alert-notification';
 
 interface CardProps {
     item: any;
@@ -16,6 +17,7 @@ interface CardProps {
     clickedAssistText?: string;
     updateEditedItems?: (updatedItem: Item) => void;
     editedItems?: Item[];
+    setRefresh: any;
 }
 interface Item {
     id?: number;
@@ -35,15 +37,17 @@ const VirtualizedList = ({
             keyExtractor={() => 'key'}
             renderItem={null}
             ListHeaderComponent={<>{children}</>}
+            refreshControl={<>{children}</>}
         />
     );
 };
-export const Card: React.FC<CardProps> = React.memo(({ item, apiCallFinished, clickedAssistText, updateEditedItems, editedItems }) => {
+export const Card: React.FC<CardProps> = React.memo(({ item, apiCallFinished, clickedAssistText, updateEditedItems, editedItems, setRefresh }) => {
     console.log("i am waiting for card", item);
     const [showDescription, setShowDescription] = useState(false);
     const [editingCost, setEditingCost] = useState(false);
     const [editedCost, setEditedCost] = useState(item.cost.toString());
     const isEditEnabled = editedCost !== item.cost.toString(); // Check if user edited the cost
+    const [refreshing, setRefreshing] = useState(false)
     const auth = useAuthContext()
     console.log("I am Auth", auth);
     const toggleDescription = () => {
@@ -75,25 +79,44 @@ export const Card: React.FC<CardProps> = React.memo(({ item, apiCallFinished, cl
             }
         }
         try {
+            setRefresh(true);
+            setRefreshing(true)
             const update = await axios.post(`https://www.lohawalla.com/purchaser/pages/setBasicPrice/saveBasicPrice`, formedData)
-        showMessage({
-            message:"Data saved successfully",
-            type: "success",
-            duration: 5000,
-            style: { borderRadius: 50 }
-        })
-        if (updateEditedItems) {
-            updateEditedItems(updatedItem);
-        }
+            // showMessage({
+            //     message: "Data saved successfully",
+            //     type: "success",
+            //     duration: 5000,
+            //     style: { borderRadius: 50 }
+            // })
+            Dialog.show({
+                type: ALERT_TYPE.SUCCESS,
+                title: 'Success',
+                textBody: 'Congrats! Data Updated Successfully!',
+                button: 'close',
+                
+            })
+            if (updateEditedItems) {
+                updateEditedItems(updatedItem);
+            }
+            setRefresh(false);
+            setRefreshing(false)
         } catch (error) {
             showMessage({
-                message:"Failed to update",
+                message: "Failed to update",
                 type: "danger",
                 duration: 5000,
                 style: { borderRadius: 50 }
             })
         }
-        
+
+    }
+    if (refreshing) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#0000ff" />
+                <Text>Updating...</Text>
+            </View>
+        );
     }
     return (
         <View style={styles.card}>
@@ -136,7 +159,7 @@ export const Card: React.FC<CardProps> = React.memo(({ item, apiCallFinished, cl
                             source={ImageIndex.check}
                         />
                     </TouchableOpacity>
-                </View>   
+                </View>
             </View>
         </View>
     );
@@ -147,7 +170,10 @@ const TableView = ({ searchText }: any) => {
     const [apiCallFinished, setApiCallFinished] = useState(false); // Flag to track API call completion
     const [filteredData, setFilteredData] = useState([]);
     const [editedItems, setEditedItems] = useState<Array<Item>>([]);
-
+    const [refreshing, setRefreshing] = useState(false);
+    const setRefresh = (value: boolean) => {
+        setRefreshing(value);
+    };
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -164,8 +190,28 @@ const TableView = ({ searchText }: any) => {
         };
 
         fetchData(); // Fetch data on mount
-    }, []);
+    }, [refreshing]);
+    const handleRefresh = async () => {
+        // Place your data fetching logic here
+        try {
+            const API_URL = 'https://www.lohawalla.com/purchaser/pages/setBasicPrice/getBasicPrice';
+            const response = await axios.get(API_URL);
+            const data = response.data;
+            setData(data)
+            await AsyncStorage.setItem('Base', JSON.stringify(data));
+            setData(data); // Set the fetched data
+            setApiCallFinished(true);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+        // Simulate data fetching with a delay (remove this in your actual implementation)
+        setTimeout(() => {
+            // Update the data if needed
 
+            // Step 4: After data fetching is complete, set refreshing to false
+            setRefreshing(false);
+        }, 1000); // Adjust the delay as needed
+    };
     useEffect(() => {
         const getDataFromStorage = async () => {
             try {
@@ -215,19 +261,31 @@ const TableView = ({ searchText }: any) => {
         setEditedItems(prevEditedItems => [...prevEditedItems, updatedItem]);
     };
     return (
-        <VirtualizedList>
+        <View style={{ maxHeight: "65%" }}>
             <FlatList
-                key={filteredData.length} // Add a unique key
                 style={styles.container}
                 data={filteredData}
                 ListEmptyComponent={renderSkeletonItem}
                 keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => <Card item={item} apiCallFinished={apiCallFinished} updateEditedItems={updateEditedItems} editedItems={editedItems}
-                />}
+                // Attach the RefreshControl directly to the FlatList
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={handleRefresh}
+                    />
+                }
+                renderItem={({ item }) => (
+                    <Card
+                        item={item}
+                        apiCallFinished={apiCallFinished}
+                        updateEditedItems={updateEditedItems}
+                        editedItems={editedItems}
+                        setRefresh={setRefresh}
+                    />
+                )}
             />
-
-        </VirtualizedList>
-    )
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
@@ -241,7 +299,7 @@ const styles = StyleSheet.create({
         borderColor: '#ddd',
         elevation: 1,
         marginLeft: '5%',
-        marginRight: '5%'
+        marginRight: '5%',
     },
     image: {
         width: 50,
@@ -293,6 +351,11 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '500%',
         backgroundColor: '#fafafa',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });
 
