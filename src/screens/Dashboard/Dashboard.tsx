@@ -62,7 +62,7 @@ const Dashboard = ({ navigation }: any) => {
                                 </Text>
                             </View>
                             <View >
-                                <ToggleSwitch
+                                {/* <ToggleSwitch
                                     isOn={toggle}
                                     onColor="#414EF1"
                                     offColor="#B0B0B0"
@@ -70,12 +70,12 @@ const Dashboard = ({ navigation }: any) => {
                                     onToggle={handleToggle}
                                     label="Table View"
                                     labelStyle={{ color: "black", fontWeight: "600" }}
-                                />
+                                /> */}
                             </View>
                         </View>
                     </VirtualizedList>
                     <View >
-                        <Text style={{ color: 'black', fontWeight: '700', fontSize: 18 }}
+                        <Text style={{ color: 'black', fontWeight: '700'}}
                             className="text-lg text-black">Base Pricing</Text>
                     </View>
 
@@ -83,13 +83,7 @@ const Dashboard = ({ navigation }: any) => {
                         <SearchBar onSearch={(searchText: any) => setSearchText(searchText)} />
                     </View>
                 </View>
-                {toggle ? (
                     <TableViewCard searchText={searchText} />
-                ) : (
-
-                    <TableviewTable searchText={searchText} />
-                )}
-
             </View >
         </>
 
